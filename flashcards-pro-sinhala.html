@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flashcards Pro — Sinhala & English Study Cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+Sinhala:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg1:#eef3ff;--bg2:#f9fbff;--card:#ffffff;--ink:#0f172a;--muted:#5b6b83;
+  --pri:#4f46e5;--pri2:#7c3aed;--ok:#059669;--bad:#dc2626;--warn:#b45309;
+  --line:#e4e9f2;--chip:#eef1fb;--shadow:0 12px 32px rgba(15,23,42,.09);--cardfs:23px;
+}
+[data-theme=dark]{
+  --bg1:#0a1020;--bg2:#0e1628;--card:#131d33;--ink:#e6ecf8;--muted:#93a3bd;
+  --line:#22304e;--chip:#1b2745;--shadow:0 12px 32px rgba(0,0,0,.45);
+}
+html,body{min-height:100%}
+body{font-family:'Inter','Noto Sans Sinhala',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--ink);background:linear-gradient(140deg,var(--bg1),var(--bg2));padding-bottom:70px}
+.wrap{max-width:1060px;margin:0 auto;padding:18px 16px}
+.hidden{display:none!important}
+
+/* ---------- top bar ---------- */
+.topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.logo{font-size:22px;font-weight:800;background:linear-gradient(90deg,var(--pri),var(--pri2));-webkit-background-clip:text;background-clip:text;color:transparent;margin-right:auto}
+.statchip{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 12px;font-size:12.5px;color:var(--muted);box-shadow:var(--shadow)}
+.statchip b{color:var(--ink);font-size:14px}
+#fontChip{cursor:help;font-family:'Noto Sans Sinhala','Inter',sans-serif}
+#fontChip.good{border-color:var(--ok);color:var(--ok)}
+#fontChip.bad{border-color:var(--bad);color:var(--bad)}
+
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:6px;background:var(--card);padding:6px;border-radius:14px;box-shadow:var(--shadow);margin-bottom:16px;overflow-x:auto}
+.tabbtn{flex:1;border:none;background:transparent;padding:10px 12px;border-radius:10px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap;font-size:14px;min-width:110px}
+.tabbtn.active{background:linear-gradient(90deg,var(--pri),var(--pri2));color:#fff}
+.tabbtn .badge{background:rgba(127,127,127,.18);border-radius:8px;padding:1px 7px;font-size:11px;margin-left:6px}
+.tabbtn.active .badge{background:rgba(255,255,255,.25)}
+.tab{display:none}.tab.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+
+/* ---------- panels & controls ---------- */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+.panel h2{font-size:16px;margin-bottom:4px}
+.panel .sub{color:var(--muted);font-size:13px;margin-bottom:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.field{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted);font-weight:600}
+select,input[type=text],input[type=search],textarea{
+  border:1px solid var(--line);background:var(--bg2);color:var(--ink);border-radius:10px;padding:9px 11px;font-size:14px;font-family:inherit;outline:none
+}
+select:focus,input:focus,textarea:focus{border-color:var(--pri)}
+textarea{width:100%;min-height:120px;resize:vertical}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;border-radius:11px;font-weight:600;font-size:14px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:7px;font-family:inherit}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.btn.primary{background:linear-gradient(90deg,var(--pri),var(--pri2));color:#fff;border:none}
+.btn.ok{background:var(--ok);color:#fff;border:none}
+.btn.bad{background:var(--bad);color:#fff;border:none}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn.big{padding:12px 22px;font-size:15px;border-radius:13px}
+.check{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink);font-weight:600;cursor:pointer;background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+.check input{accent-color:var(--pri);width:15px;height:15px}
+.icon{border:none;background:transparent;font-size:16px;cursor:pointer;padding:6px;border-radius:8px}
+.icon:hover{background:var(--chip)}
+
+/* ---------- dropzone ---------- */
+.dropzone{border:2.5px dashed var(--pri);background:linear-gradient(135deg,rgba(79,70,229,.06),rgba(124,58,237,.06));border-radius:16px;padding:34px 18px;text-align:center;cursor:pointer;transition:.2s}
+.dropzone.drag{background:rgba(79,70,229,.14);transform:scale(1.01)}
+.dropzone .big{font-size:38px}
+.dropzone h3{margin:8px 0 2px;font-size:16px}
+.dropzone p{color:var(--muted);font-size:13px}
+#fileLabel{font-weight:700;color:var(--pri)}
+
+/* ---------- progress & report ---------- */
+.progress{height:10px;background:var(--chip);border-radius:8px;overflow:hidden;margin:10px 0 6px}
+.progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--pri),var(--pri2));transition:width .3s}
+.progtext{font-size:12.5px;color:var(--muted)}
+.pill{display:inline-block;padding:2px 9px;border-radius:9px;font-size:11px;font-weight:700;background:var(--chip);color:var(--muted)}
+.pill.good{background:rgba(5,150,105,.14);color:var(--ok)}
+.pill.warn{background:rgba(180,83,9,.14);color:var(--warn)}
+.pill.bad{background:rgba(220,38,38,.13);color:var(--bad)}
+.pill.lg{background:rgba(79,70,229,.12);color:var(--pri)}
+.report{margin-top:14px}
+.report .reprow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.preview{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:15px;max-height:170px;overflow:auto;line-height:1.9;white-space:pre-wrap;font-family:'Noto Sans Sinhala','Iskoola Pota','Sinhala Sangam MN','Inter',sans-serif}
+.notes{font-size:12.5px;color:var(--warn);margin:8px 0}
+.genlist{margin:10px 0 0 18px;font-size:13.5px;color:var(--muted);line-height:2}
+.tips{font-size:12.5px;color:var(--muted);line-height:1.8;margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+
+/* ---------- flashcard ---------- */
+.studytbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.studytbar .spacer{flex:1}
+.bar{height:8px;background:var(--chip);border-radius:6px;overflow:hidden;margin-bottom:12px}
+.bar>div{height:100%;width:0;background:linear-gradient(90deg,var(--ok),#34d399);transition:width .3s}
+.cardwrap{perspective:1400px}
+.card3d{position:relative;height:min(54vh,430px);cursor:pointer}
+.card-inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.2,.75,.3,1)}
+.card3d.flipped .card-inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:22px;display:flex;flex-direction:column;overflow:auto}
+.face.back{transform:rotateY(180deg);background:linear-gradient(150deg,var(--card),var(--chip))}
+.face .content{margin:auto;font-size:var(--cardfs);font-weight:600;line-height:1.55;text-align:center;white-space:pre-wrap;word-break:break-word;font-family:'Noto Sans Sinhala','Iskoola Pota','Sinhala Sangam MN','Inter',sans-serif}
+.face .content:lang(si){line-height:2.05}
+.opts{margin:14px auto 0;color:var(--muted);font-size:calc(var(--cardfs)*.72);line-height:1.8;list-style-position:inside;font-family:'Noto Sans Sinhala','Inter',sans-serif}
+.badges{position:sticky;top:0;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:6px}
+.caption{text-align:center;color:var(--muted);font-size:12.5px;margin:10px 0 0;font-family:'Noto Sans Sinhala','Inter',sans-serif}
+.ctrls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.dots{text-align:center;margin-top:10px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--line);margin:0 3px}
+.dot.on{background:var(--ok)}
+.hint{text-align:center;color:var(--muted);font-size:11.5px;margin-top:10px}
+kbd{background:var(--chip);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;font-size:10.5px;font-family:inherit}
+.empty{color:var(--muted);text-align:center;padding:30px 10px;font-size:14px;line-height:1.9}
+
+/* ---------- quiz ---------- */
+.qopts{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.quizopt{border:1.5px solid var(--line);background:var(--bg2);color:var(--ink);border-radius:12px;padding:13px 15px;font-size:15px;text-align:left;cursor:pointer;font-family:'Noto Sans Sinhala','Inter',sans-serif;font-weight:600;transition:.15s;line-height:1.7}
+.quizopt:hover:enabled{border-color:var(--pri);transform:translateY(-1px)}
+.quizopt:disabled{cursor:default;opacity:.85}
+.quizopt.correct{border-color:var(--ok);background:rgba(5,150,105,.12);color:var(--ok)}
+.quizopt.wrong{border-color:var(--bad);background:rgba(220,38,38,.1);color:var(--bad)}
+.quizopt.tf{text-align:center;font-weight:800}
+.tfrow{display:flex;gap:10px;margin-top:16px}
+.tfrow .quizopt{flex:1;text-align:center}
+.typein{display:flex;gap:10px;margin-top:16px}
+.typein input{flex:1;font-size:16px;padding:12px 14px;font-family:'Noto Sans Sinhala','Inter',sans-serif}
+.qtext{font-size:18px;font-weight:700;line-height:1.8;white-space:pre-wrap}
+.feedback{margin-top:14px;padding:12px 14px;border-radius:12px;font-size:14px;line-height:1.7;font-family:'Noto Sans Sinhala','Inter',sans-serif}
+.feedback.ok{background:rgba(5,150,105,.12);color:var(--ok)}
+.feedback.bad{background:rgba(220,38,38,.1);color:var(--bad)}
+.qtop{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.qtop .pill{font-size:12px;padding:4px 11px}
+.scoreRing{width:130px;height:130px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:10px auto}
+.scoreRing>div{width:100px;height:100px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800}
+#quizMissed{margin:10px 0 0 20px;line-height:2;font-size:14px;font-family:'Noto Sans Sinhala','Inter',sans-serif}
+
+/* ---------- manage ---------- */
+.mrow{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:13px;padding:11px 13px;margin-bottom:9px;background:var(--bg2)}
+.mbadges{display:flex;flex-direction:column;gap:5px;align-items:flex-start;min-width:58px}
+.mtext{flex:1;min-width:0}
+.mfront{font-weight:700;font-size:14.5px;line-height:1.8;font-family:'Noto Sans Sinhala','Inter',sans-serif}
+.mback{color:var(--muted);font-size:13px;margin-top:3px;line-height:1.7;font-family:'Noto Sans Sinhala','Inter',sans-serif}
+.macts{display:flex;gap:4px}
+.mrow textarea{min-height:60px;font-size:13.5px;margin-bottom:6px}
+.mini{font-size:11.5px;color:var(--muted)}
+
+/* ---------- toast ---------- */
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg2);padding:11px 18px;border-radius:12px;font-size:13.5px;opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:90vw;font-family:'Noto Sans Sinhala','Inter',sans-serif}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.bad{background:var(--bad);color:#fff}
+
+@media (max-width:640px){
+  .card3d{height:60vh}
+  .tabbtn{min-width:86px;font-size:12.5px}
+  .panel{padding:14px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="logo">📚 Flashcards Pro <span style="font-size:13px;font-weight:600;color:var(--muted);-webkit-text-fill-color:var(--muted)">සිංහල + English</span></div>
+    <div class="statchip" id="fontChip" title="Checking Sinhala font…">සිංහල …</div>
+    <div class="statchip">🗂 <b id="statCards">0</b> cards</div>
+    <div class="statchip">⭐ <b id="statMastered">0</b> mastered</div>
+    <button class="btn ghost" id="themeBtn" title="Toggle dark mode">🌙</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tabbtn active" data-tab="generate">📤 Upload &amp; Generate</button>
+    <button class="tabbtn" data-tab="study">🃏 Study <span class="badge" id="badgeStudy">0</span></button>
+    <button class="tabbtn" data-tab="quiz">📝 Quiz</button>
+    <button class="tabbtn" data-tab="manage">🗂 Manage <span class="badge" id="badgeManage">0</span></button>
+  </div>
+
+  <!-- ============ TAB: GENERATE ============ -->
+  <section class="tab active" id="tab-generate">
+    <div class="panel">
+      <h2>1 · Upload your textbook</h2>
+      <div class="sub">PDF · TXT · MD · DOCX — පාඩම් පොත මෙහි උඩුගත කරන්න</div>
+      <div class="dropzone" id="dropzone">
+        <div class="big">📂</div>
+        <h3>Drop your book here, or click to browse</h3>
+        <p>පොතක් මෙහි අත්හිටුවන්න හෝ ක්ලික් කරන්න — selected: <span id="fileLabel">none</span></p>
+        <input type="file" id="fileInput" accept=".pdf,.txt,.md,.markdown,.docx,.text" class="hidden">
+      </div>
+      <div style="margin-top:12px">
+        <details>
+          <summary style="cursor:pointer;font-size:13.5px;color:var(--muted);font-weight:600">…or paste text instead / හෝ පෙළක් පේස්ට් කරන්න</summary>
+          <textarea id="pasteText" placeholder="Paste any text here (Sinhala or English)…&#10;ඕනෑම පෙළක් මෙහි ඇල්පියන්න" style="margin-top:8px"></textarea>
+        </details>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="btnDemoSi">🇱🇰 Load Sinhala demo</button>
+        <button class="btn" id="btnDemoEn">🇬🇧 Load English demo</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>2 · Options</h2>
+      <div class="sub">Choose what to generate — අවශ්‍ය දේ තෝරන්න</div>
+      <div class="row">
+        <label class="field">Language / භාෂාව
+          <select id="optLang">
+            <option value="auto">Auto-detect</option>
+            <option value="si">Sinhala only</option>
+            <option value="en">English only</option>
+          </select>
+        </label>
+        <label class="field">How many cards
+          <select id="optCount">
+            <option value="12">12</option>
+            <option value="24" selected>24</option>
+            <option value="36">36</option>
+            <option value="50">50</option>
+          </select>
+        </label>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label class="check"><input type="checkbox" id="tQA" checked> Q&amp;A definitions</label>
+        <label class="check"><input type="checkbox" id="tTerm" checked> Key terms</label>
+        <label class="check"><input type="checkbox" id="tCloze" checked> Fill-in-blanks</label>
+        <label class="check"><input type="checkbox" id="tMCQ" checked> Multiple choice</label>
+        <label class="check"><input type="checkbox" id="tTF"> True / False</label>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label class="check"><input type="checkbox" id="optOCR"> 🔍 Force OCR — for scanned / image books (needs internet, slower)</label>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn primary big" id="btnGenerate" disabled>⚡ Generate Flashcards <span style="font-weight:400">· කාඩ්පත් සාදන්න</span></button>
+      </div>
+      <div id="progWrap" class="hidden">
+        <div class="progress"><div id="progBar"></div></div>
+        <div class="progtext" id="progText"></div>
+      </div>
+      <div id="report" class="report hidden">
+        <div class="reprow">
+          <span class="pill" id="repLevel">—</span>
+          <span class="mini" id="repStats"></span>
+        </div>
+        <div class="notes" id="repNotes"></div>
+        <div class="preview" id="repPreview"></div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn warn" id="btnOcrInstead" style="display:none">🔍 Re-extract with OCR instead</button>
+        </div>
+      </div>
+      <div id="genSummary" class="report hidden">
+        <div class="reprow"><span class="pill good" id="genStats"></span></div>
+        <ol class="genlist" id="genList"></ol>
+        <div class="row" style="margin-top:12px">
+          <button class="btn primary big" id="btnStartStudy">▶ Start studying</button>
+        </div>
+      </div>
+      <div class="tips">
+        💡 <b>Why Sinhala sometimes fails:</b> some Sinhala PDFs have a broken or missing text layer, so copied text comes out as symbols — English PDFs rarely have this problem. If the preview above looks like symbols, tick <b>Force OCR</b> and re-upload: the app will read the pages as pictures with Sinhala OCR. Fonts need internet once to download (Noto Sans Sinhala); after that the Sinhala text will always display correctly.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB: STUDY ============ -->
+  <section class="tab" id="tab-study">
+    <div class="studytbar">
+      <select id="studyFilter" title="Filter deck">
+        <option value="all">All cards</option>
+        <option value="new">New only</option>
+        <option value="learning">Still learning</option>
+        <option value="mastered">Mastered ★</option>
+      </select>
+      <button class="btn" id="btnShuffle" title="Shuffle deck">🔀 Shuffle</button>
+      <button class="btn" id="btnReverse" title="Flip direction: answer → question">⇄ Reverse</button>
+      <div class="spacer"></div>
+      <label class="field" style="flex-direction:row;align-items:center;gap:8px">Aa
+        <input type="range" id="fontSize" min="17" max="38" value="23" style="width:90px">
+      </label>
+      <span class="mini" id="cardPos">0 / 0</span>
+    </div>
+    <div class="bar"><div id="studyBar"></div></div>
+
+    <div class="empty hidden" id="studyEmpty">
+      No cards yet 📭<br>Create cards in the <b>Upload &amp; Generate</b> tab first.<br>
+      <span style="font-family:'Noto Sans Sinhala'">පළමුව කාඩ්පත් සාදන්න</span>
+    </div>
+
+    <div id="studyWrap">
+      <div class="cardwrap">
+        <div class="card3d" id="card3d" title="Click to flip">
+          <div class="card-inner">
+            <div class="face front" id="faceFront">
+              <div class="badges" id="ffBadges"></div>
+              <div class="content"></div>
+              <div class="caption" id="frontCaption"></div>
+            </div>
+            <div class="face back" id="faceBack">
+              <div class="badges" id="fbBadges"></div>
+              <div class="content"></div>
+              <div class="caption">Answer · පිළිතුර</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dots" id="mDots"></div>
+      <div class="ctrls">
+        <button class="btn" id="btnPrev">◀ Prev</button>
+        <button class="btn primary" id="btnFlip">🔄 Flip</button>
+        <button class="btn" id="btnNext">Next ▶</button>
+      </div>
+      <div class="ctrls">
+        <button class="btn ok" id="btnKnow">✔ I knew it <span style="font-weight:400">· දන්නවා</span></button>
+        <button class="btn bad" id="btnReview">✖ Review again <span style="font-weight:400">· නැවත</span></button>
+      </div>
+      <div class="hint"><kbd>Space</kbd> flip · <kbd>←</kbd><kbd>→</kbd> navigate · <kbd>1</kbd> knew it · <kbd>2</kbd> review</div>
+    </div>
+  </section>
+
+  <!-- ============ TAB: QUIZ ============ -->
+  <section class="tab" id="tab-quiz">
+    <div class="panel" id="quizSetup">
+      <h2>Quiz yourself 📝</h2>
+      <div class="sub">Multiple choice, fill-in-blank and true/false questions built from your cards — ප්‍රශ්නාවලිය අරඹන්න</div>
+      <div class="row">
+        <label class="field">Questions
+          <select id="quizCount">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+          </select>
+        </label>
+        <button class="btn primary big" id="btnQuizStart">▶ Start quiz</button>
+      </div>
+      <div class="empty" id="quizNoCards">You need at least 4 cards to start a quiz.</div>
+    </div>
+
+    <div class="panel hidden" id="quizArea">
+      <div class="qtop">
+        <span class="pill lg" id="quizPos">Question 1 / 10</span>
+        <span class="pill good" id="quizScoreLive">Score: 0</span>
+      </div>
+      <div class="qtext" id="quizPrompt"></div>
+      <div class="caption" id="quizCaption"></div>
+      <div id="quizAnswerBox"></div>
+      <div class="feedback hidden" id="quizFeedback"></div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn primary hidden" id="btnQuizNext">Next question ▶</button>
+        <button class="btn ghost" id="btnQuizQuit">✕ Quit</button>
+      </div>
+    </div>
+
+    <div class="panel hidden" id="quizResult">
+      <h2 style="text-align:center">Results</h2>
+      <div class="scoreRing" id="scoreRing"><div id="scorePct">0%</div></div>
+      <p style="text-align:center;font-size:16px;font-weight:700" id="scoreMsg"></p>
+      <div class="sub" style="margin-top:14px" id="missedTitle">Questions to review:</div>
+      <ul id="quizMissed"></ul>
+      <div class="row" style="margin-top:14px;justify-content:center">
+        <button class="btn primary" id="btnRetryWrong">🔁 Retry wrong ones</button>
+        <button class="btn" id="btnQuizHome">Done</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB: MANAGE ============ -->
+  <section class="tab" id="tab-manage">
+    <div class="panel">
+      <h2>Add a card manually ✍️</h2>
+      <div class="row" style="margin-top:8px">
+        <textarea id="addFront" placeholder="Front (question / term)" style="min-height:64px;flex:1;min-width:220px"></textarea>
+        <textarea id="addBack" placeholder="Back (answer / definition)" style="min-height:64px;flex:1;min-width:220px"></textarea>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="btnAdd">＋ Add card</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="row">
+        <input type="search" id="searchInput" placeholder="Search cards… 🔍" style="flex:1;min-width:180px">
+        <select id="filterType" style="min-width:120px">
+          <option value="">All types</option>
+          <option value="qa">Q&amp;A</option>
+          <option value="term">Term</option>
+          <option value="cloze">Fill-blank</option>
+          <option value="mcq">MCQ</option>
+          <option value="tf">True/False</option>
+        </select>
+        <span class="mini" id="manageCount"></span>
+      </div>
+      <div id="cardsList" style="margin-top:12px"></div>
+    </div>
+    <div class="panel">
+      <div class="row">
+        <button class="btn" id="btnExportJson">⬇ Export JSON</button>
+        <button class="btn" id="btnExportCsv">⬇ Export CSV (Excel)</button>
+        <label class="btn" style="cursor:pointer">⬆ Import JSON<input type="file" id="importInput" accept=".json" class="hidden"></label>
+        <button class="btn bad" id="btnClearAll">🗑 Delete all</button>
+      </div>
+      <div class="tips">Your cards are saved automatically in this browser (localStorage). Export a JSON backup before switching device or browser.</div>
+    </div>
+  </section>
+
+</div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ============ core helpers ============ */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const SI_RE=/[\u0D80-\u0DFF]/;
+const hasSi=s=>SI_RE.test(String(s||''));
+const langOf=s=>hasSi(s)?'si':'en';
+const cap=s=>s?String(s).charAt(0).toUpperCase()+String(s).slice(1):'';
+const normText=t=>String(t||'')
+  .replace(/\r\n?/g,'\n')
+  .replace(/[\uFEFF\u200B\u200C]/g,'')
+  .replace(/\u00A0/g,' ')
+  .normalize('NFC');
+const tokenize=s=>String(s||'').match(/[\p{L}\p{M}\p{N}\u200D]+/gu)||[];
+const wc=s=>tokenize(s).length;
+const shuffled=a=>{const r=a.slice();for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;};
+const shorten=(s,n)=>{s=String(s||'').trim();return s.length>n?s.slice(0,n-1).trimEnd()+'…':s;};
+const escapeRe=s=>String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+/* Sinhala-safe word masking: only blanks whole words, never the middle of a word */
+function maskWord(s,kw){
+  try{
+    const re=new RegExp('(?<![\\p{L}\\p{M}\\p{N}])'+escapeRe(kw)+'(?![\\p{L}\\p{M}\\p{N}])','iu');
+    if(!re.test(s))return null;
+    return s.replace(re,'______');
+  }catch(e){
+    const re2=new RegExp('(^|\\s)('+escapeRe(kw)+')(?=\\s|$)','iu');
+    if(!re2.test(s))return null;
+    return s.replace(re2,'$1______');
+  }
+}
+function wordIn(s,kw){
+  let re;
+  try{
+    re=new RegExp('(?<![\\p{L}\\p{M}\\p{N}])'+escapeRe(kw)+'(?![\\p{L}\\p{M}\\p{N}])','iu');
+  }catch(e){
+    re=new RegExp('(^|\\s)('+escapeRe(kw)+')(?=\\s|$)','iu');
+  }
+  return re.test(s);
+}
+function lev(a,b){
+  const m=a.length,n=b.length;
+  if(!m)return n; if(!n)return m;
+  let prev=Array.from({length:n+1},(_,i)=>i);
+  for(let i=1;i<=m;i++){
+    const cur=[i];
+    for(let j=1;j<=n;j++){
+      cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    }
+    prev=cur;
+  }
+  return prev[n];
+}
+
+/* ============ stopwords ============ */
+const EN_STOP=new Set(('a an the is are was were be been being this that these those it its in on at to from by of for with as and or but not no yes if then than so such very can could may might will would shall should must do does did done have has had we you they he she i me my our your their his her them us there here what which who whom whose when where why how all any both each few more most other some only own same too also into over under again further once about between during before after above below up down out off while because around across along among toward towards upon within without behind beyond inside outside means known defined called refers').split(' '));
+const SI_STOP=new Set(('සහ හා ද ය ඒ ම මෙම එම එය එයද ඔහු ඇය අපි ඔවුන් ඔබ මම මා අප ඔවුන වන වූ වේ වෙයි වන්නේ ලෙස අතර තුළ සඳහා නිසා බව එක් සිට දක්වා පිළිබඳ පරිදි මගින් සමග සමඟ හෝ නම් හැක හැකි පුළුවන් නොහැක ඇත ඇති තිබේ කර කරන කිරීම එහෙත් නමුත් මේ මෙසේ එසේ එබැවින් එනිසා අනුව පමණි පමණ පමණය සියලු සියලුම අනෙකුත් අනෙක් තව තවත් බොහෝ කිහිපයක් එකම පළමු දෙවන ඊළඟ අවසාන උදා ආදී ආදිය ලබා දෙයි දෙනු ලැබේ වීම වීමට මෙන් වැනි අයත් දක්වා ඇතිව සම්පූර්ණයෙන් යනු වනාහී වනාහි හඳුන්වන්නේ හඳුන්වනු හඳුන්වන හඳුන්වයි හැඳින්වේ ලබන්නේ ලබන වටා').split(/\s+/));
+function isStop(w,lang){
+  if(lang==='en')return EN_STOP.has(w.toLowerCase());
+  if(/යයි$/.test(w))return true;
+  return SI_STOP.has(w)||SI_STOP.has(w.replace(/ය$/,''))||SI_STOP.has(w.replace(/ේ$/,''));
+}
+
+/* ============ state ============ */
+const LS_CARDS='sfpro_cards_v3',LS_SET='sfpro_settings_v3';
+let CARDS=[];
+let SETT=Object.assign({
+  theme:'light',fontSize:23,reverse:false,shuffle:false,filter:'all',
+  genCount:'24',langMode:'auto',forceOcr:false
+},JSON.parse(localStorage.getItem(LS_SET)||'{}'));
+let RAW={text:'',name:'',pages:0,method:'',quality:null};
+let UI={tab:'generate',idx:0,deck:[],flipped:false};
+let QUIZ=null;
+let CURRENT_FILE=null;
+
+const save=()=>{
+  localStorage.setItem(LS_CARDS,JSON.stringify(CARDS));
+  localStorage.setItem(LS_SET,JSON.stringify(SETT));
+  updateHeaderStats();
+};
+
+/* ============ toast / theme / tabs ============ */
+let toastT;
+function toast(msg,kind='ok'){
+  const t=$('#toast');t.textContent=msg;t.className='show'+(kind==='bad'?' bad':'');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.className='',2800);
+}
+function applyTheme(){
+  document.documentElement.dataset.theme=SETT.theme;
+  $('#themeBtn').textContent=SETT.theme==='dark'?'☀️':'🌙';
+}
+function showTab(n){
+  UI.tab=n;
+  $$('.tabbtn').forEach(b=>b.classList.toggle('active',b.dataset.tab===n));
+  $$('.tab').forEach(s=>s.classList.toggle('active',s.id==='tab-'+n));
+  if(n==='study')renderStudy();
+  if(n==='quiz')renderQuizHome();
+  if(n==='manage')renderManage();
+}
+function updateHeaderStats(){
+  $('#statCards').textContent=CARDS.length;
+  $('#statMastered').textContent=CARDS.filter(c=>c.box>=3).length;
+  $('#badgeStudy').textContent=CARDS.length;
+  $('#badgeManage').textContent=CARDS.length;
+  const q=$('#quizNoCards');
+  if(q)q.classList.toggle('hidden',CARDS.length>=4);
+}
+
+/* ============ Sinhala font check ============ */
+async function checkFonts(){
+  const chip=$('#fontChip');
+  try{
+    await document.fonts.load('16px "Noto Sans Sinhala"','සිංහල අකුරු');
+    await document.fonts.ready;
+  }catch(e){}
+  let ok=false;
+  try{ok=document.fonts.check('16px "Noto Sans Sinhala"','සිංහල');}catch(e){ok=true;}
+  chip.textContent=ok?'සිංහල ✓ font loaded':'Sinhala font ⚠ offline';
+  chip.classList.toggle('good',ok);
+  chip.classList.toggle('bad',!ok);
+  chip.title=ok
+    ?'Noto Sans Sinhala is active — Sinhala text will display correctly everywhere in this app.'
+    :'The Sinhala web font could not download (no internet?). The app will try your system Sinhala font (Iskoola Pota / Sinhala Sangam MN). Connect to the internet once for the best result.';
+}
+/* ============ CDN libraries (lazy loaded) ============ */
+const CDN={
+  pdfjs:'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
+  pdfjsWorker:'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js',
+  cmaps:'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
+  stdfonts:'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/standard_fonts/',
+  tess:'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js',
+  mammoth:'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js'
+};
+function loadScript(src){
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src=src;s.onload=res;
+    s.onerror=()=>rej(new Error('Could not load a required library (check internet): '+src.split('/').pop()));
+    document.head.appendChild(s);
+  });
+}
+async function ensure(name,url){
+  if(window[name])return;
+  await loadScript(url);
+  if(!window[name])throw new Error(name+' failed to initialise');
+}
+
+/* ============ PDF text extraction (Sinhala-aware line grouping) ============ */
+function pageParagraphs(tc){
+  const lines=[];
+  let cur=null;
+  for(const it of tc.items){
+    if(typeof it.str!=='string')continue;
+    const tr=it.transform,x=tr[4],y=tr[5];
+    const size=Math.abs(tr[3])||Math.abs(tr[0])||10;
+    const w=it.width||it.str.length*size*0.5;
+    if(str_empty(it.str)){if(it.hasEOL&&cur){lines.push(cur);cur=null;}continue;}
+    if(cur&&Math.abs(y-cur.y)<=size*0.6){
+      const gap=x-cur.end;
+      if(cur.parts.length&&gap>size*0.18)cur.parts.push(' ');
+      cur.parts.push(it.str);cur.end=x+w;cur.size=Math.max(cur.size,size);
+    }else{
+      if(cur)lines.push(cur);
+      cur={y,size,end:x+w,parts:[it.str]};
+    }
+    if(it.hasEOL){lines.push(cur);cur=null;}
+  }
+  if(cur)lines.push(cur);
+  function str_empty(s){return s.replace(/\s/g,'').length===0;}
+  const paras=[];let buf=[];
+  for(const L of lines){
+    const text=L.parts.join('').replace(/[ \t]+/g,' ').trim();
+    if(!text)continue;
+    if(buf.length){
+      const prev=buf[buf.length-1];
+      const gap=prev.y-L.y,size=Math.max(prev.size,L.size);
+      if(gap>size*1.85){paras.push(buf.map(b=>b.text).join(' '));buf=[];}
+    }
+    buf.push({y:L.y,size:L.size,text});
+  }
+  if(buf.length)paras.push(buf.map(b=>b.text).join(' '));
+  return paras.join('\n\n');
+}
+async function extractPdf(file,{forceOcr=false,onProgress=()=>{}}={}){
+  await ensure('pdfjsLib',CDN.pdfjs);
+  pdfjsLib.GlobalWorkerOptions.workerSrc=CDN.pdfjsWorker;
+  const data=await file.arrayBuffer();
+  const doc=await pdfjsLib.getDocument({
+    data,
+    cMapUrl:CDN.cmaps,cMapPacked:true,
+    standardFontDataUrl:CDN.stdfonts
+  }).promise;
+  const n=doc.numPages;
+  if(forceOcr){
+    await ensure('Tesseract',CDN.tess);
+    const canvas=document.createElement('canvas');
+    let out='';
+    for(let i=1;i<=n;i++){
+      onProgress({p:i,n,msg:'Preparing page '+i+' of '+n+' for OCR…'});
+      const page=await doc.getPage(i);
+      const vp=page.getViewport({scale:2.2});
+      canvas.width=Math.floor(vp.width);canvas.height=Math.floor(vp.height);
+      const ctx=canvas.getContext('2d',{willReadFrequently:true});
+      ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);
+      await page.render({canvasContext:ctx,viewport:vp}).promise;
+      const r=await Tesseract.recognize(canvas,'sin+eng',{
+        logger:m=>{if(m.status==='recognizing text')onProgress({p:i,n,msg:'OCR page '+i+'/'+n+': '+Math.round(m.progress*100)+'%'});}
+      });
+      out+='\n\n'+r.data.text;
+    }
+    return {text:normText(out),pages:n,method:'ocr'};
+  }
+  let out='';
+  for(let i=1;i<=n;i++){
+    onProgress({p:i,n,msg:'Reading page '+i+' of '+n+'…'});
+    const page=await doc.getPage(i);
+    const tc=await page.getTextContent();
+    out+=pageParagraphs(tc)+'\n\n';
+  }
+  return {text:normText(out),pages:n,method:'text'};
+}
+
+/* ============ quality check ============ */
+function qualityCheck(t){
+  t=t||'';
+  const chars=t.replace(/\s/g,'').length;
+  const words=wc(t);
+  const si=(t.match(/[\u0D80-\u0DFF]/g)||[]).length;
+  const en=(t.match(/[A-Za-z]/g)||[]).length;
+  const garbage=(t.match(/[\uE000-\uF8FF\uFFFD\u25A1\uFFFE]/g)||[]).length;
+  const total=Math.max(1,si+en+garbage);
+  const gPct=garbage/total*100;
+  const contentPct=(si+en)/total*100;
+  let level='good';const notes=[];
+  if(chars<60){level='poor';notes.push('Very little text was found — this book is probably a scanned / image-only PDF. Turn on Force OCR and upload again.');}
+  else if(gPct>25){level='garbled';notes.push(Math.round(gPct)+'% of characters are unreadable symbols — this PDF has a broken or blocked text layer (common with old Sinhala PDFs). Use Force OCR instead.');}
+  else if(contentPct<50){level='poor';notes.push('The extracted text has little readable content — OCR may give better results.');}
+  else if(chars<400){level='fair';notes.push('Only a small amount of text was extracted — add more pages or paste more text for more cards.');}
+  return {chars,words,si,en,garbage,gPct,level,notes};
+}
+
+/* ============ file dispatcher ============ */
+async function fileToText(file,opts={}){
+  const ext=(file.name.split('.').pop()||'').toLowerCase();
+  if(ext==='pdf')return extractPdf(file,opts);
+  if(ext==='docx'||ext==='doc'){
+    await ensure('mammoth',CDN.mammoth);
+    const r=await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});
+    return {text:normText(r.value),pages:0,method:'docx'};
+  }
+  return {text:normText(await file.text()),pages:0,method:'txt'};
+}
+
+/* ============ upload UI ============ */
+function setProg(pct,msg){
+  const w=$('#progWrap');w.classList.remove('hidden');
+  $('#progBar').style.width=Math.max(2,Math.min(100,pct))+'%';
+  $('#progText').textContent=msg||'';
+}
+function hideProg(){$('#progWrap').classList.add('hidden');}
+
+async function handleFile(file){
+  CURRENT_FILE=file;
+  $('#fileLabel').textContent=file.name;
+  SETT.forceOcr=$('#optOCR').checked;save();
+  try{
+    setProg(4,'Reading “'+file.name+'” …');
+    if($('#optOCR').checked)$('#progText').textContent='First OCR run downloads the Sinhala language pack (~2 MB), please wait…';
+    const r=await fileToText(file,{forceOcr:$('#optOCR').checked,onProgress:o=>setProg(o.p/o.n*92,o.msg)});
+    RAW.text=r.text;RAW.name=file.name;RAW.pages=r.pages;
+    RAW.method=$('#optOCR').checked?'OCR':r.method;
+    RAW.quality=qualityCheck(r.text);
+    renderReport();
+    const poor=RAW.quality.level==='garbled'||RAW.quality.level==='poor';
+    $('#btnOcrInstead').style.display=poor?'':'none';
+    setProg(100,'Done ✓');
+    setTimeout(hideProg,700);
+    $('#btnGenerate').disabled=!(RAW.text&&wc(RAW.text)>=8);
+    if(!poor&&RAW.text)toast('Text extracted ✓ — now press Generate');
+  }catch(e){
+    hideProg();
+    toast('Could not read the file: '+e.message,'bad');
+  }
+}
+async function reextractOcr(){
+  if(!CURRENT_FILE)return;
+  $('#optOCR').checked=true;
+  SETT.forceOcr=true;save();
+  toast('Re-reading the book with Sinhala OCR — this can take a while…');
+  await handleFile(CURRENT_FILE);
+}
+function renderReport(){
+  const q=RAW.quality;const r=$('#report');
+  if(!q){r.classList.add('hidden');return;}
+  r.classList.remove('hidden');
+  const lvl={good:['good','✓ Good text quality'],fair:['warn','△ Fair quality'],poor:['warn','△ Poor quality'],garbled:['bad','✕ Garbled text']}[q.level]||['warn','△ ?'];
+  const lv=$('#repLevel');lv.textContent=lvl[1];lv.className='pill '+lvl[0];
+  const siPct=Math.round(q.si/Math.max(1,q.si+q.en)*100);
+  $('#repStats').textContent=(RAW.pages?RAW.pages+' pages · ':'')+q.chars.toLocaleString()+' chars · '+q.words.toLocaleString()+' words · Sinhala '+siPct+'% · method: '+RAW.method.toUpperCase();
+  $('#repNotes').innerHTML=q.notes.map(n=>'⚠️ '+esc(n)).join('<br>');
+  const pv=$('#repPreview');
+  pv.textContent=RAW.text.slice(0,700)+(RAW.text.length>700?' …':'');
+  pv.lang=langOf(RAW.text.slice(0,700));
+}
+/* ============ sentence splitting & blocks ============ */
+function splitSentences(t){
+  const out=[];const re=/[^.!?]+[.!?]+["')\]]?|[^.!?]+$/g;let m;
+  while((m=re.exec(t))){
+    const s=m[0].trim();
+    if(s)out.push(s);
+  }
+  return out.filter(s=>s.length>=12&&wc(s)>=4&&!/^[•\-–—\d]/.test(s.trim()));
+}
+function isHeading(b){
+  b=b.trim();
+  return b.length<=80&&!/[.!?]$/.test(b)&&wc(b)<=12&&wc(b)>=1;
+}
+
+/* ============ definition pattern extraction ============ */
+/* Sinhala textbook patterns: "X යනු Y ය", "X වනාහී Y", "X ලෙස හඳුන්වන්නේ Y", "X අදහස් වන්නේ Y" */
+const SI_DEFS=[
+  /^(.{3,80}?)\s*යනු\s*(.{6,}?)(?:යයි|යි|ය|වේ|වෙයි)?\s*[.]?\s*$/u,
+  /^(.{3,80}?)\s*වනාහී?\s*(.{6,}?)(?:යයි|ය|වේ)?\s*[.]?\s*$/u,
+  /^(.{3,80}?)\s+ලෙස\s+(?:හඳුන්වනු\s*ලබන්නේ|හඳුන්වනු\s*ලබන|හැඳින්වෙන්නේ|හඳුන්වා\s*දෙනු\s*ලබන්නේ|හඳුන්වන|හඳුන්වයි|හැඳින්වේ|හැඳින්වෙයි)\s+(.{6,}?)(?:යයි|ය|වේ)?\s*[.]?\s*$/u,
+  /^(.{3,80}?)\s+(?:අදහස්\s*වන්නේ|හැඟවෙන්නේ)\s+(.{6,}?)(?:ය|වේ)?\s*[.]?\s*$/u
+];
+const EN_DEFS=[
+  /^(.{3,70}?)\s+(?:is|are)\s+(?:defined as|known as|called)\s+(.{10,}?)[.]?\s*$/i,
+  /^(.{3,70}?)\s+refers to\s+(.{10,}?)[.]?\s*$/i,
+  /^(.{3,70}?)\s+means\s+(.{10,}?)[.]?\s*$/i,
+  /^(.{3,70}?)\s+(?:is|are)\s+((?:a|an|the)\s+.{10,}?)[.]?\s*$/i
+];
+function extractDefs(sents,lang){
+  const pats=lang==='si'?SI_DEFS:EN_DEFS;
+  const defs=[];
+  for(const s of sents){
+    if(s.includes('?'))continue;
+    for(const p of pats){
+      const m=s.match(p);
+      if(!m)continue;
+      const term=m[1].replace(/^(?:the|a|an)\s+/i,'').replace(/\s+/g,' ').trim();
+      const def=m[2].replace(/\s+/g,' ').trim().replace(/[,;:]$/,'');
+      const tt=tokenize(term),dt=tokenize(def);
+      if(tt.length<1||tt.length>6||dt.length<3)break;
+      if(isStop(tt[0],lang))break;
+      defs.push({term,def,sentence:s});
+      break;
+    }
+  }
+  return defs;
+}
+
+/* ============ keyword extraction ============ */
+function topKeywords(sents,lang,limit=30){
+  const map=new Map();
+  for(const s of sents){
+    const seen=new Set();
+    for(const raw of tokenize(s)){
+      const rawTok=raw;
+      const w=lang==='en'?raw.toLowerCase():raw;
+      if(w.length<3)continue;
+      if(/^\d+$/.test(w))continue;
+      if(isStop(w,lang))continue;
+      /* merge common Sinhala inflections: මණ්ඩලයේ → මණ්ඩලය */
+      const key=lang==='si'?w.replace(/ේ$/,'').replace(/ට$/,''):w;
+      if(seen.has(key))continue;
+      seen.add(key);
+      const e=map.get(key);
+      const surface=lang==='en'?rawTok:w;
+      if(e){e.f++;if(surface.length>e.surface.length)e.surface=surface;}
+      else map.set(key,{surface,f:1});
+    }
+  }
+  return [...map.values()]
+    .map(e=>({w:e.surface,f:e.f,score:e.f*Math.min(2.2,1+(e.surface.length-3)/6)}))
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,limit)
+    .map(a=>a.w);
+}
+
+/* ============ main generator ============ */
+function generateAll(text,opts){
+  text=normText(text||'');
+  opts=opts||{};
+  const cards=[];
+  const used=new Set();
+  const stats={si:0,en:0};
+  let src='';
+
+  /* blocks: paragraphs with a possible heading before them */
+  const merged=text.replace(/([^\n])\n([^\n])/g,'$1 $2');
+  const blocks=merged.split(/\n{2,}/).map(b=>b.trim()).filter(Boolean);
+  const ctx=[];
+  for(const b of blocks){
+    if(isHeading(b)){src=b.replace(/\s+/g,' ').slice(0,70);continue;}
+    const sents=splitSentences(b);
+    if(!sents.length)continue;
+    const lang=(opts.langMode&&opts.langMode!=='auto')?opts.langMode:(hasSi(b)?'si':'en');
+    ctx.push({sents,lang,src});
+  }
+  if(!ctx.length)return {cards,stats};
+
+  const pushCard=c=>{
+    const key=c.front+'::'+c.type;
+    if(used.has(key))return false;
+    used.add(key);
+    c.id=uid();c.box=0;c.seen=0;c.ok=0;c.bad=0;c.created=Date.now();c.src=src;
+    c.lang=langOf(c.front+' '+(c.back||''));
+    cards.push(c);
+    stats[c.lang]=(stats[c.lang]||0)+1;
+    return true;
+  };
+
+  /* quotas by enabled type */
+  const weights={qa:.38,term:.2,cloze:.26,mcq:.16};
+  if(opts.types&&opts.types.tf)weights.tf=.08;
+  const enabled=Object.keys(weights).filter(k=>!opts.types||opts.types[k]);
+  const wsum=enabled.reduce((s,k)=>s+weights[k],0)||1;
+  const target=Math.min(opts.count||24,120);
+  const quota={};
+  enabled.forEach(k=>quota[k]=Math.max(1,Math.round(target*weights[k]/wsum)));
+
+  /* --- definitions (both languages) --- */
+  const defsSi=[],defsEn=[];
+  for(const c of ctx){
+    for(const d of extractDefs(c.sents,c.lang)){
+      (c.lang==='si'?defsSi:defsEn).push({term:d.term,def:d.def,sentence:d.sentence,src:c.src,lang:c.lang});
+    }
+  }
+  const allDefs=[...defsSi,...defsEn];
+
+  let qaN=quota.qa||0;
+  for(const d of allDefs){
+    if(qaN<=0)break;
+    const front=d.lang==='si'?d.term+' යනු කුමක්ද?':'What is '+cap(d.term)+'?';
+    if(pushCard({type:'qa',front,back:d.def}))qaN--;
+  }
+
+  /* --- key terms with context --- */
+  const kwSi=topKeywords(ctx.filter(c=>c.lang==='si').flatMap(c=>c.sents),'si',30);
+  const kwEn=topKeywords(ctx.filter(c=>c.lang==='en').flatMap(c=>c.sents),'en',30);
+  const usedTerms=new Set(allDefs.map(d=>d.term.toLowerCase()));
+  function ctxFor(kw){
+    const kwl=kw.toLowerCase();
+    for(const c of ctx){
+      for(const s of c.sents){
+        if(s.length<260&&s.toLowerCase().includes(kwl))return {s,lang:c.lang};
+      }
+    }
+    return null;
+  }
+  let termN=quota.term||0;
+  for(const kw of [...shuffled(kwSi),...shuffled(kwEn)]){
+    if(termN<=0)break;
+    if(usedTerms.has(kw.toLowerCase()))continue;
+    const c=ctxFor(kw);
+    if(!c)continue;
+    if(pushCard({type:'term',front:cap(kw),back:c.s}))termN--;
+  }
+
+  /* --- cloze fill-in-blanks --- */
+  let clN=quota.cloze||0;
+  const usedKw=new Set();
+  const allSents=ctx.flatMap(c=>c.sents.map(s=>({s,lang:c.lang})));
+  for(const {s,lang} of shuffled(allSents)){
+    if(clN<=0)break;
+    const kw=(lang==='si'?kwSi:kwEn).find(k=>!usedKw.has(k)&&wordIn(s,k));
+    if(!kw)continue;
+    const masked=maskWord(s,kw);
+    if(!masked)continue;
+    usedKw.add(kw);
+    if(pushCard({type:'cloze',front:masked,back:kw}))clN--;
+  }
+
+  /* --- MCQ: choose the word that fits the blank --- */
+  let mcN=quota.mcq||0;
+  for(const {s,lang} of shuffled(allSents)){
+    if(mcN<=0)break;
+    const kw=(lang==='si'?kwSi:kwEn).find(k=>!usedKw.has(k)&&wordIn(s,k));
+    if(!kw)continue;
+    const distract=shuffled((lang==='si'?kwSi:kwEn).filter(k=>k!==kw&&!wordIn(s,k))).slice(0,3);
+    if(distract.length<3)continue;
+    const masked=maskWord(s,kw);
+    if(!masked)continue;
+    usedKw.add(kw);
+    const options=shuffled([kw,...distract]);
+    if(pushCard({type:'mcq',front:masked,back:kw,options}))mcN--;
+  }
+
+  /* --- true / false (needs several definitions) --- */
+  let tfN=(opts.types&&opts.types.tf)?Math.max(2,Math.round(target*.08)):0;
+  for(const d of shuffled(allDefs)){
+    if(tfN<=0)break;
+    const others=allDefs.filter(x=>x.lang===d.lang&&x.term!==d.term);
+    if(others.length<1)break;
+    const truth=Math.random()<0.5;
+    const claim=truth?d:others[Math.floor(Math.random()*others.length)];
+    let front=d.lang==='si'?d.term+' යනු '+claim.def+'.':cap(d.term+' is '+claim.def+'.');
+    const back=truth
+      ?'TRUE ✓'
+      :'FALSE ✕ — '+(d.lang==='si'?d.term+' යනු '+d.def+'.':cap(d.term+' is '+d.def+'.'));
+    if(pushCard({type:'tf',front,back}))tfN--;
+  }
+
+  return {cards:cards.slice(0,150),stats};
+}
+function mergeCards(oldL,newL){
+  const have=new Set(oldL.map(c=>c.front+'::'+c.type));
+  return oldL.concat(newL.filter(c=>!have.has(c.front+'::'+c.type)));
+}
+
+/* ============ demo texts ============ */
+const DEMO_SI=`සෞරග්‍රහ මණ්ඩලය
+
+සෞරග්‍රහ මණ්ඩලය යනු සූර්යයා සහ එය වටා කක්ෂගතව ඇති ග්‍රහ වස්තූන් සමූහයයි. ග්‍රහලෝක යනු සූර්යයා වටා කක්ෂගතව ගමන් කරන විශාල ග්‍රහ වස්තූන්ය. උපග්‍රහ ලෙස හඳුන්වන්නේ ග්‍රහලෝකයක් වටා කක්ෂගතව ගමන් කරන වස්තූන් වේ. අප ජීවත් වන පෘථිවිය සෞරග්‍රහ මණ්ඩලයේ තුන්වන ග්‍රහලෝකයයි.
+
+සූර්යයා යනු සෞරග්‍රහ මණ්ඩලයේ ඇති එකම තරුවයි. එය අපට ආලෝකය සහ තාපය ලබා දෙයි. ග්‍රහලෝක අටක් සෞරග්‍රහ මණ්ඩලයේ ඇත. ඒවා අභ්‍යන්තර ග්‍රහලෝක සහ බාහිර ග්‍රහලෝක ලෙස වර්ග කර ඇත.
+
+බුධ යනු සූර්යයාට ආසන්නම ග්‍රහලෝකයයි. පෘථිවිය යනු ජීවින් සහිත එකම ග්‍රහලෝකයයි. යුපිටර් යනු සෞරග්‍රහ මණ්ඩලයේ විශාලතම ග්‍රහලෝකයයි. ශනි යනු වළලු පටි සහිත ග්‍රහලෝකයයි. ඇස්ටෙරොයිඩ ලෙස හඳුන්වන්නේ අඟහරු සහ යුපිටර් අතර කක්ෂගතව ඇති ගල් කැබලි වේ.`;
+
+const DEMO_EN=`Photosynthesis
+
+Photosynthesis is the process by which green plants use sunlight, water and carbon dioxide to make their own food. Chlorophyll refers to the green pigment inside leaves that absorbs light energy. Respiration means the release of energy from food inside living cells. A habitat is the natural home of a plant or an animal.
+
+The Solar System
+
+The Solar System is the family of the Sun and all the objects that orbit around it. A planet is a large object that orbits around the Sun. A satellite is defined as an object that orbits around a planet. The Earth is the third planet from the Sun. Jupiter is known as the largest planet in the Solar System. Gravity means the force that pulls objects towards each other.`;
+
+function loadDemo(lang){
+  RAW.text=lang==='si'?DEMO_SI:DEMO_EN;
+  RAW.name=lang==='si'?'Sinhala demo text':'English demo text';
+  RAW.pages=0;RAW.method='demo';
+  RAW.quality=qualityCheck(RAW.text);
+  CURRENT_FILE=null;
+  renderReport();
+  $('#btnOcrInstead').style.display='none';
+  $('#btnGenerate').disabled=false;
+  toast(lang==='si'?'සිංහල ආදර්ශ පෙළ පූරණය විය — Generate ඔබන්න':'Demo text loaded — press Generate');
+}
+
+/* ============ generate button ============ */
+function startGenerate(){
+  const paste=$('#pasteText').value.trim();
+  const text=paste.length>200?paste:RAW.text;
+  if(!text||wc(text)<8){toast('No text to generate from — upload a file or load a demo.','bad');return;}
+  if(paste.length>200)RAW.name='pasted text';
+  const opts={
+    count:parseInt($('#optCount').value,10)||24,
+    langMode:$('#optLang').value,
+    types:{qa:$('#tQA').checked,term:$('#tTerm').checked,cloze:$('#tCloze').checked,mcq:$('#tMCQ').checked,tf:$('#tTF').checked}
+  };
+  const res=generateAll(text,opts);
+  if(!res.cards.length){
+    toast('No cards could be generated. Try more text, or OCR mode if the preview looks like symbols.','bad');
+    return;
+  }
+  CARDS=mergeCards(CARDS,res.cards);
+  save();
+  $('#genSummary').classList.remove('hidden');
+  $('#genStats').textContent='✓ '+res.cards.length+' new cards · '+res.stats.si+' Sinhala · '+res.stats.en+' English — from “'+(RAW.name||'text')+'”';
+  $('#genList').innerHTML=res.cards.slice(0,8).map(c=>
+    '<li lang="'+c.lang+'"><b>'+esc(shorten(c.front,80))+'</b> <span class="pill lg">'+esc(c.type.toUpperCase())+'</span></li>'
+  ).join('');
+  toast(res.cards.length+' cards generated ✓ කාඩ්පත් සාදන ලදී');
+}
+/* ============ STUDY view ============ */
+const TYPE_LABEL={qa:'Q&A',term:'TERM',cloze:'FILL',mcq:'MCQ',tf:'T/F'};
+const TYPE_CAPTION={
+  qa:{si:'ප්‍රශ්නයට පිළිතුර සිහිපත් කර හරවන්න',en:'Think of the answer, then flip'},
+  term:{si:'මෙම වචනය පැහැදිලි කරන්න',en:'Explain this term'},
+  cloze:{si:'හිස් තැනේ වචනය සිහිපත් කරන්න',en:'Recall the missing word'},
+  mcq:{si:'හිස් තැනට ගැළපෙන වචනය තෝරන්න',en:'Which word fits the blank?'},
+  tf:{si:'සත්‍යද? බොරුද?',en:'True or false?'}
+};
+function buildDeck(){
+  let list=CARDS.slice();
+  const f=SETT.filter;
+  if(f==='new')list=list.filter(c=>!c.seen);
+  else if(f==='learning')list=list.filter(c=>c.seen&&c.box<3);
+  else if(f==='mastered')list=list.filter(c=>c.box>=3);
+  if(SETT.shuffle)list=shuffled(list);
+  else list.sort((a,b)=>(a.created||0)-(b.created||0));
+  return list;
+}
+function badgeHTML(c){
+  return '<span class="pill lg">'+(TYPE_LABEL[c.type]||'CARD')+'</span>'
+    +(c.lang==='si'?'<span class="pill">සිංහල</span>':'<span class="pill">EN</span>')
+    +(c.src?'<span class="pill">'+esc(shorten(c.src,30))+'</span>':'');
+}
+function setFace(faceEl,text,c,isFront){
+  faceEl.innerHTML='';
+  const badges=document.createElement('div');
+  badges.className='badges';
+  badges.innerHTML=isFront?badgeHTML(c):'';
+  faceEl.appendChild(badges);
+  const content=document.createElement('div');
+  content.className='content';
+  content.textContent=text||'';
+  content.setAttribute('lang',langOf(text||''));
+  faceEl.appendChild(content);
+  if(isFront&&c.type==='mcq'&&Array.isArray(c.options)){
+    const ol=document.createElement('ol');
+    ol.className='opts';
+    ol.setAttribute('lang',langOf(c.options.join(' ')));
+    c.options.forEach(o=>{
+      const li=document.createElement('li');
+      li.textContent=o;
+      ol.appendChild(li);
+    });
+    faceEl.appendChild(ol);
+  }
+  const cap=document.createElement('div');
+  cap.className='caption';
+  if(isFront){
+    const cc=TYPE_CAPTION[c.type]||TYPE_CAPTION.qa;
+    cap.textContent=cc[langOf(text||'')]||cc.en;
+  }else{
+    cap.textContent='Answer · පිළිතුර';
+  }
+  faceEl.appendChild(cap);
+}
+function renderStudy(){
+  const deck=UI.deck=buildDeck();
+  const empty=$('#studyEmpty'),wrap=$('#studyWrap');
+  $('#studyFilter').value=SETT.filter;
+  $('#btnShuffle').style.background=SETT.shuffle?'var(--chip)':'';
+  $('#btnReverse').style.background=SETT.reverse?'var(--chip)':'';
+  if(!deck.length){
+    empty.classList.remove('hidden');
+    wrap.classList.add('hidden');
+    $('#cardPos').textContent='0 / 0';
+    return;
+  }
+  empty.classList.add('hidden');
+  wrap.classList.remove('hidden');
+  if(UI.idx>=deck.length)UI.idx=0;
+  if(UI.idx<0)UI.idx=deck.length-1;
+  showCard();
+}
+function showCard(){
+  const deck=UI.deck;
+  if(!deck.length)return;
+  UI.idx=Math.max(0,Math.min(UI.idx,deck.length-1));
+  const c=deck[UI.idx];
+  UI.flipped=false;
+  $('#card3d').classList.remove('flipped');
+  const rev=SETT.reverse&&(c.type==='qa'||c.type==='term');
+  const front=rev?c.back:c.front;
+  const back=rev?c.front:c.back;
+  setFace($('#faceFront'),front,c,true);
+  setFace($('#faceBack'),back,c,false);
+  $('#mDots').innerHTML=[0,1,2].map(i=>'<span class="dot '+(c.box>i?'on':'')+'"></span>').join('');
+  $('#cardPos').textContent=(UI.idx+1)+' / '+deck.length;
+  $('#studyBar').style.width=((UI.idx+1)/deck.length*100)+'%';
+}
+function flip(){
+  if(!UI.deck.length)return;
+  UI.flipped=!UI.flipped;
+  $('#card3d').classList.toggle('flipped',UI.flipped);
+}
+function nextCard(){if(UI.idx<UI.deck.length-1){UI.idx++;showCard();}else toast('End of deck 🎉 අවසානයයි');}
+function prevCard(){if(UI.idx>0){UI.idx--;showCard();}}
+function mark(knew){
+  const c=UI.deck[UI.idx];
+  if(!c)return;
+  c.seen=(c.seen||0)+1;
+  if(knew){c.box=Math.min(3,(c.box||0)+1);c.ok=(c.ok||0)+1;}
+  else{c.box=0;c.bad=(c.bad||0)+1;}
+  save();
+  toast(knew?'✔ Great — card mastered a bit more':'✖ Marked for review · නැවත අධ්‍යයනය');
+  setTimeout(()=>{
+    if(UI.idx<UI.deck.length-1){UI.idx++;showCard();}
+    else renderStudy();
+  },220);
+}
+
+/* ============ QUIZ view ============ */
+function quizCaption(q){
+  const lang=langOf(q.c.front);
+  if(q.kind==='tf')return lang==='si'?'සත්‍යද බොරුද?':'True or false?';
+  if(q.kind==='type')return lang==='si'?'පිළිතුර ලියන්න':'Type the answer';
+  if(q.c.type==='mcq')return lang==='si'?'හිස් තැනට ගැළපෙන වචනය තෝරන්න':'Choose the word that fits the blank';
+  return lang==='si'?'නිවැරදි පිළිතුර තෝරන්න':'Choose the correct answer';
+}
+function promptOf(c,kind){
+  if(c.type==='term'&&kind!=='type'){
+    return langOf(c.front)==='si'
+      ?'“'+c.front+'” — මෙය ගැන නිවැරදි විස්තරය කුමක්ද?'
+      :'Which statement correctly describes “'+c.front+'”?';
+  }
+  return c.front;
+}
+function judge(u,a){
+  const clean=x=>String(x||'').trim().toLowerCase().replace(/[.,!?;:()"'’“”]/g,'').replace(/\s+/g,' ').trim();
+  u=clean(u);a=clean(a);
+  if(!u||!a)return false;
+  if(u===a)return true;
+  const max=Math.max(u.length,a.length);
+  if(max<=12)return lev(u,a)<=1;
+  if(max<=26)return lev(u,a)<=2;
+  const at=a.split(' '),ut=u.split(' ');
+  const as=new Set(at),us=new Set(ut);
+  let hit=0;
+  ut.forEach(w=>{if(as.has(w))hit++;});
+  if(hit/Math.max(1,ut.length)>=0.7)return true;
+  /* short answer typed with extra words: every answer word must appear */
+  if(at.length<=4){
+    let h2=0;
+    at.forEach(w=>{if(us.has(w))h2++;});
+    if(h2===at.length)return true;
+  }
+  return false;
+}
+function quizItem(c){
+  if(c.type==='mcq'&&Array.isArray(c.options)&&c.options.length>=2)
+    return {c,kind:'mcq',options:shuffled(c.options.slice()),answer:c.back};
+  if(c.type==='cloze')
+    return {c,kind:'type',answer:c.back};
+  if(c.type==='tf')
+    return {c,kind:'tf',answer:c.back.indexOf('TRUE')===0?'TRUE':'FALSE'};
+  const same=CARDS.filter(x=>x.id!==c.id&&x.back&&langOf(x.back)===langOf(c.back));
+  if(same.length>=3){
+    const correct=shorten(c.back,90);
+    const distract=shuffled(same).slice(0,3).map(x=>shorten(x.back,90));
+    return {c,kind:'mcq',options:shuffled([correct,...distract]),answer:correct};
+  }
+  return {c,kind:'type',answer:c.back};
+}
+function startQuiz(pool){
+  if(!pool)pool=CARDS.slice();
+  if(pool.length<4){toast('You need at least 4 cards to start a quiz.','bad');return;}
+  const n=Math.min(parseInt($('#quizCount').value,10)||10,pool.length);
+  QUIZ={qs:shuffled(pool).slice(0,n).map(quizItem),i:0,score:0,wrong:[],answered:false};
+  $('#quizSetup').classList.add('hidden');
+  $('#quizResult').classList.add('hidden');
+  $('#quizArea').classList.remove('hidden');
+  renderQ();
+}
+function renderQ(){
+  const Q=QUIZ;
+  const q=Q.qs[Q.i];
+  Q.answered=false;
+  $('#quizPos').textContent='Question '+(Q.i+1)+' / '+Q.qs.length;
+  $('#quizScoreLive').textContent='Score: '+Q.score;
+  $('#quizPrompt').textContent=promptOf(q.c,q.kind);
+  $('#quizPrompt').lang=langOf(q.c.front);
+  $('#quizCaption').textContent=quizCaption(q);
+  const box=$('#quizAnswerBox');
+  box.innerHTML='';
+  const fb=$('#quizFeedback');
+  fb.className='feedback hidden';fb.textContent='';
+  $('#btnQuizNext').classList.add('hidden');
+  if(q.kind==='mcq'){
+    const col=document.createElement('div');
+    col.className='qopts';
+    q.options.forEach(o=>{
+      const b=document.createElement('button');
+      b.className='quizopt';
+      b.textContent=o;
+      b.lang=langOf(o);
+      b.onclick=()=>pickOpt(q,o,b);
+      col.appendChild(b);
+    });
+    box.appendChild(col);
+  }else if(q.kind==='tf'){
+    const row=document.createElement('div');
+    row.className='tfrow';
+    [['TRUE','TRUE ✓ සත්‍ය'],['FALSE','FALSE ✕ බොරු']].forEach(([v,label])=>{
+      const b=document.createElement('button');
+      b.className='quizopt tf';
+      b.textContent=label;
+      b.onclick=()=>pickTf(q,v,b);
+      row.appendChild(b);
+    });
+    box.appendChild(row);
+  }else{
+    const wrap=document.createElement('div');
+    wrap.className='typein';
+    const inp=document.createElement('input');
+    inp.placeholder=langOf(q.answer)==='si'?'පිළිතුර මෙහි ලියන්න…':'Type your answer…';
+    inp.lang=langOf(q.answer);
+    const btn=document.createElement('button');
+    btn.className='btn primary';
+    btn.textContent='Check ✓';
+    btn.onclick=()=>checkType(q,inp);
+    inp.onkeydown=e=>{if(e.key==='Enter')checkType(q,inp);};
+    wrap.append(inp,btn);
+    box.appendChild(wrap);
+    setTimeout(()=>inp.focus(),60);
+  }
+}
+function settle(q,correct,chosenEl){
+  const Q=QUIZ;
+  if(Q.answered)return;
+  Q.answered=true;
+  if(correct)Q.score++;
+  else Q.wrong.push(q.c);
+  const fb=$('#quizFeedback');
+  fb.textContent=(correct?'✔ Correct! නිවැරදියි! ':'✘ Not quite. ')
+    +'Answer: '+shorten(q.answer||q.c.back,140);
+  fb.className='feedback '+(correct?'ok':'bad');
+  $$('#quizAnswerBox .quizopt').forEach(b=>{
+    b.disabled=true;
+    if(q.kind==='mcq'&&b.textContent===q.answer)b.classList.add('correct');
+  });
+  if(chosenEl&&!correct)chosenEl.classList.add('wrong');
+  if(chosenEl&&correct)chosenEl.classList.add('correct');
+  $('#btnQuizNext').classList.remove('hidden');
+  $('#quizScoreLive').textContent='Score: '+Q.score;
+}
+function pickOpt(q,opt,btn){
+  if(QUIZ.answered)return;
+  settle(q,opt===q.answer,btn);
+}
+function pickTf(q,val,btn){
+  if(QUIZ.answered)return;
+  settle(q,val===q.answer,btn);
+}
+function checkType(q,inp){
+  if(QUIZ.answered)return;
+  const ok=judge(inp.value,q.answer);
+  inp.disabled=true;
+  settle(q,ok,null);
+}
+function quizNext(){
+  const Q=QUIZ;
+  if(Q.i<Q.qs.length-1){Q.i++;renderQ();}
+  else quizResults();
+}
+function quizResults(){
+  const Q=QUIZ;
+  const pct=Math.round(Q.score/Q.qs.length*100);
+  $('#quizArea').classList.add('hidden');
+  $('#quizResult').classList.remove('hidden');
+  $('#scoreRing').style.background='conic-gradient(var(--ok) '+(pct*3.6)+'deg, var(--line) 0deg)';
+  $('#scorePct').textContent=pct+'%';
+  $('#scoreMsg').textContent=pct>=80?'Excellent! ඉතා හොඳයි! 🎉':pct>=60?'Good job! හොඳයි! 👍':'Keep practicing! දිගටම පුහුණු වන්න 💪';
+  $('#missedTitle').textContent=Q.wrong.length?('Questions to review ('+Q.wrong.length+'):'):'Result:';
+  $('#quizMissed').innerHTML=Q.wrong.length
+    ?Q.wrong.map(c=>'<li lang="'+c.lang+'"><b>'+esc(shorten(c.front,110))+'</b> → '+esc(shorten(c.back,140))+'</li>').join('')
+    :'<li>Perfect — nothing missed! 🌟</li>';
+  $('#btnRetryWrong').classList.toggle('hidden',!Q.wrong.length);
+}
+function renderQuizHome(){
+  $('#quizSetup').classList.toggle('hidden',false);
+  $('#quizArea').classList.add('hidden');
+  $('#quizResult').classList.add('hidden');
+  updateHeaderStats();
+}
+/* ============ MANAGE view ============ */
+function rowHTML(c){
+  return '<div class="mrow" data-id="'+c.id+'">'
+    +'<div class="mbadges"><span class="pill lg">'+(TYPE_LABEL[c.type]||'CARD')+'</span>'
+    +'<span class="pill">'+(c.lang==='si'?'සිං':'EN')+'</span>'
+    +(c.box>=3?'<span class="pill good">★</span>':'')+'</div>'
+    +'<div class="mtext"><div class="mfront" lang="'+c.lang+'">'+esc(shorten(c.front,160))+'</div>'
+    +'<div class="mback" lang="'+langOf(c.back||'')+'">'+esc(shorten(c.back||'',200))+'</div></div>'
+    +'<div class="macts"><button class="icon" data-act="edit" title="Edit">✎</button>'
+    +'<button class="icon" data-act="del" title="Delete">🗑</button></div>'
+    +'</div>';
+}
+function renderManage(){
+  const q=($('#searchInput').value||'').trim().toLowerCase();
+  const ft=$('#filterType').value;
+  const list=CARDS.filter(c=>(!ft||c.type===ft)&&(!q||((c.front+' '+(c.back||'')).toLowerCase().includes(q))));
+  $('#manageCount').textContent=list.length+' / '+CARDS.length;
+  $('#cardsList').innerHTML=list.map(rowHTML).join('')||'<div class="empty">No cards match. / කාඩ්පත් නොමැත</div>';
+}
+function openEdit(row,c){
+  row.innerHTML='<div class="mtext" style="flex:1">'
+    +'<textarea class="ef">'+esc(c.front)+'</textarea>'
+    +'<textarea class="eb">'+esc(c.back||'')+'</textarea></div>'
+    +'<div class="macts"><button class="icon ok" data-act="save" title="Save">💾</button>'
+    +'<button class="icon" data-act="cancel" title="Cancel">✕</button></div>';
+  row.querySelector('.ef').focus();
+}
+function closeEditSave(row,c){
+  const f=row.querySelector('.ef').value.trim();
+  const b=row.querySelector('.eb').value.trim();
+  if(f){c.front=f;c.lang=langOf(f);}
+  if(b)c.back=b;
+  save();renderManage();toast('Saved ✓');
+}
+function download(name,content,mime){
+  const b=new Blob([content],{type:mime});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);
+  a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+}
+function exportJson(){
+  download('flashcards-backup.json',JSON.stringify(CARDS,null,2),'application/json');
+  toast('Exported '+CARDS.length+' cards ✓');
+}
+function exportCsv(){
+  const rows=[['front','back','type','lang','source','mastery']];
+  CARDS.forEach(c=>rows.push([c.front,c.back||'',c.type,c.lang,c.src||'',c.box]));
+  const csv='\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  download('flashcards.csv',csv,'text/csv;charset=utf-8');
+  toast('CSV exported (works with Sinhala in Excel) ✓');
+}
+
+/* ============ events & init ============ */
+function bindEvents(){
+  /* tabs */
+  $$('.tabbtn').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+  /* theme */
+  $('#themeBtn').onclick=()=>{SETT.theme=SETT.theme==='dark'?'light':'dark';save();applyTheme();};
+  /* dropzone */
+  const dz=$('#dropzone'),fi=$('#fileInput');
+  dz.onclick=()=>fi.click();
+  fi.onchange=e=>{if(e.target.files[0])handleFile(e.target.files[0]);e.target.value='';};
+  ['dragover','dragenter'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
+  dz.addEventListener('drop',e=>{
+    const f=e.dataTransfer.files&&e.dataTransfer.files[0];
+    if(f)handleFile(f);
+  });
+  window.addEventListener('dragover',e=>e.preventDefault());
+  window.addEventListener('drop',e=>e.preventDefault());
+  /* generate */
+  $('#btnGenerate').onclick=startGenerate;
+  $('#btnOcrInstead').onclick=reextractOcr;
+  $('#btnDemoSi').onclick=()=>loadDemo('si');
+  $('#btnDemoEn').onclick=()=>loadDemo('en');
+  $('#btnStartStudy').onclick=()=>{UI.idx=0;showTab('study');};
+  /* study */
+  $('#card3d').onclick=flip;
+  $('#btnFlip').onclick=flip;
+  $('#btnNext').onclick=nextCard;
+  $('#btnPrev').onclick=prevCard;
+  $('#btnKnow').onclick=()=>mark(true);
+  $('#btnReview').onclick=()=>mark(false);
+  $('#btnShuffle').onclick=()=>{SETT.shuffle=!SETT.shuffle;UI.idx=0;save();renderStudy();};
+  $('#btnReverse').onclick=()=>{SETT.reverse=!SETT.reverse;save();if(UI.deck.length)showCard();};
+  $('#studyFilter').onchange=e=>{SETT.filter=e.target.value;UI.idx=0;save();renderStudy();};
+  const fs=$('#fontSize');
+  fs.value=SETT.fontSize;
+  document.documentElement.style.setProperty('--cardfs',SETT.fontSize+'px');
+  fs.oninput=e=>{
+    SETT.fontSize=+e.target.value;
+    document.documentElement.style.setProperty('--cardfs',SETT.fontSize+'px');
+    save();
+  };
+  document.addEventListener('keydown',e=>{
+    if(UI.tab!=='study')return;
+    if(e.target.matches('input,textarea,select'))return;
+    if(e.code==='Space'){e.preventDefault();flip();}
+    else if(e.key==='ArrowRight')nextCard();
+    else if(e.key==='ArrowLeft')prevCard();
+    else if(e.key==='1')mark(true);
+    else if(e.key==='2')mark(false);
+  });
+  /* quiz */
+  $('#btnQuizStart').onclick=()=>startQuiz();
+  $('#btnQuizNext').onclick=quizNext;
+  $('#btnQuizQuit').onclick=()=>{QUIZ=null;renderQuizHome();};
+  $('#btnQuizHome').onclick=()=>{QUIZ=null;renderQuizHome();};
+  $('#btnRetryWrong').onclick=()=>{
+    if(QUIZ&&QUIZ.wrong.length)startQuiz(QUIZ.wrong.slice());
+  };
+  /* manage */
+  $('#searchInput').oninput=renderManage;
+  $('#filterType').onchange=renderManage;
+  $('#btnAdd').onclick=()=>{
+    const f=$('#addFront').value.trim(),b=$('#addBack').value.trim();
+    if(!f||!b){toast('Fill both sides of the card.','bad');return;}
+    CARDS.push({id:uid(),type:'qa',front:f,back:b,lang:langOf(f),src:'manual',box:0,seen:0,ok:0,bad:0,created:Date.now()});
+    $('#addFront').value='';$('#addBack').value='';
+    save();renderManage();toast('Card added ✓ කාඩ්පත එකතු විය');
+  };
+  $('#cardsList').addEventListener('click',e=>{
+    const b=e.target.closest('button[data-act]');
+    if(!b)return;
+    const row=b.closest('.mrow');
+    const c=CARDS.find(x=>x.id===row.dataset.id);
+    if(!c)return;
+    if(b.dataset.act==='del'){
+      if(confirm('Delete this card?')){CARDS=CARDS.filter(x=>x.id!==c.id);save();renderManage();renderStudy();toast('Deleted');}
+    }else if(b.dataset.act==='edit'){
+      openEdit(row,c);
+    }else if(b.dataset.act==='save'){
+      closeEditSave(row,c);
+    }else if(b.dataset.act==='cancel'){
+      renderManage();
+    }
+  });
+  $('#btnExportJson').onclick=exportJson;
+  $('#btnExportCsv').onclick=exportCsv;
+  $('#importInput').onchange=async e=>{
+    const f=e.target.files[0];
+    if(!f)return;
+    try{
+      const arr=JSON.parse(await f.text());
+      const list=(Array.isArray(arr)?arr:arr.cards)||[];
+      let added=0;
+      for(const it of list){
+        if(!it||!it.front)continue;
+        CARDS.push({
+          id:uid(),
+          type:['qa','term','cloze','mcq','tf'].includes(it.type)?it.type:'qa',
+          front:String(it.front),
+          back:String(it.back||''),
+          options:Array.isArray(it.options)?it.options.map(String):undefined,
+          lang:langOf(String(it.front)),
+          src:it.src?'imported':'imported',
+          box:0,seen:0,ok:0,bad:0,created:Date.now()
+        });
+        added++;
+      }
+      save();renderManage();
+      toast(added+' cards imported ✓');
+    }catch(err){
+      toast('Invalid JSON file.','bad');
+    }
+    e.target.value='';
+  };
+  $('#btnClearAll').onclick=()=>{
+    if(!CARDS.length)return;
+    if(confirm('Delete ALL '+CARDS.length+' cards? This cannot be undone.')&&confirm('Really sure? Export a backup first if needed.')){
+      CARDS=[];save();renderManage();renderStudy();toast('All cards deleted');
+    }
+  };
+}
+function init(){
+  try{CARDS=JSON.parse(localStorage.getItem(LS_CARDS))||[];}catch(e){CARDS=[];}
+  CARDS=CARDS.filter(c=>c&&c.front);
+  applyTheme();
+  checkFonts();
+  $('#optCount').value=SETT.genCount||'24';
+  $('#optLang').value=SETT.langMode||'auto';
+  $('#optOCR').checked=!!SETT.forceOcr;
+  $('#optCount').onchange=e=>{SETT.genCount=e.target.value;save();};
+  $('#optLang').onchange=e=>{SETT.langMode=e.target.value;save();};
+  $('#optOCR').onchange=e=>{SETT.forceOcr=e.target.checked;save();};
+  bindEvents();
+  updateHeaderStats();
+  showTab(CARDS.length?'study':'generate');
+}
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
